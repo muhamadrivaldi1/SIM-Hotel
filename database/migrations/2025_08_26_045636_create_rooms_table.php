@@ -15,6 +15,11 @@ return new class extends Migration
     {
         Schema::create('rooms', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('number')->unique();
+            $table->string('type'); // pastikan ada
+            $table->enum('status', ['Available', 'Occupied', 'Locked'])->default('Locked');
+            // $table->string('barcode_key')->unique();
             $table->timestamps();
         });
     }

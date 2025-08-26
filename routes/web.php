@@ -14,6 +14,7 @@ use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\GuestController;
 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -46,10 +47,11 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('rooms', RoomController::class);
     Route::post('rooms/{room}/owner-short-open', [RoomController::class, 'ownerShortOpen'])->name('rooms.ownerShortOpen');
 
-    // Keys
+
     Route::get('/keys', [KeyController::class, 'index'])->name('keys.index');
-    Route::post('/scan-key', [FrontOfficeController::class, 'scanKey'])->name('keys.scan');
-    Route::post('/rooms/{room}/keys/regenerate', [KeyController::class, 'regenerate'])->name('keys.regenerate');
+    Route::post('/keys/{room}/regenerate', [KeyController::class, 'regenerate'])->name('keys.regenerate');
+    Route::post('/keys/scan', [KeyController::class, 'scan'])->name('keys.scan');
+    Route::get('/keys/{key}/barcode', [KeyController::class, 'showBarcode'])->name('keys.barcode');
 
     // Checkins / Checkouts / Invoice
     Route::get('/checkins', [CheckinController::class, 'index'])->name('checkins.index');

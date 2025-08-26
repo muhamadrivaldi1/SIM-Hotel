@@ -26,7 +26,18 @@ class RoomController extends Controller
             'status' => 'required|string',
         ]);
 
-        Room::create($request->all());
+        // Generate name dan barcode otomatis
+        $name = 'Room ' . $request->number;
+        $barcode = 'RM-' . $request->number . '-' . strtoupper(uniqid());
+
+        Room::create([
+            'name' => $name,
+            'number' => $request->number,
+            'type' => $request->type,
+            'status' => $request->status,
+            'barcode_key' => $barcode,
+        ]);
+
         return redirect()->route('rooms.index')->with('success', 'Kamar berhasil ditambahkan');
     }
 
@@ -39,7 +50,7 @@ class RoomController extends Controller
     public function edit($id)
     {
         $room = Room::findOrFail($id);
-        return view('rooms.edit', compact('room'));
+        return view('rooms.update', compact('room'));
     }
 
     public function update(Request $request, $id)
@@ -52,7 +63,14 @@ class RoomController extends Controller
             'status' => 'required|string',
         ]);
 
-        $room->update($request->all());
+        $room->update([
+            'name' => 'Room ' . $request->number,
+            'number' => $request->number,
+            'type' => $request->type,
+            'status' => $request->status,
+            // barcode_key tetap sama, bisa digenerate ulang jika perlu
+        ]);
+
         return redirect()->route('rooms.index')->with('success', 'Kamar berhasil diperbarui');
     }
 

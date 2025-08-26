@@ -7,15 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Room extends Model
 {
-    protected $fillable = [
-        'room_number',
-        'type',
-        'price',
-        'status'
-    ];
+    use HasFactory;
 
-    public function checkins()
-    {
-        return $this->hasMany(Checkin::class);
-    }
+    protected $fillable = [
+        'name',
+        'number',
+        'type',
+        'status',
+        'barcode_key'
+    ];
 }
