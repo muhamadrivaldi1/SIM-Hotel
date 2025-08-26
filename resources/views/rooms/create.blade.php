@@ -2,7 +2,6 @@
 @section('title', 'Tambah Kamar')
 
 @section('content')
-<h3>Tambah Kamar Baru</h3>
 
 <form action="{{ route('rooms.store') }}" method="POST">
     @csrf
@@ -26,16 +25,17 @@
     <div class="mb-3">
         <label class="form-label">Status</label>
         <select name="status" class="form-select" required>
-            <option value="Available" @if(old('status')=='Available') selected @endif>Available</option>
-            <option value="Occupied" @if(old('status')=='Occupied') selected @endif>Occupied</option>
-            <option value="Locked" @if(old('status')=='Locked') selected @endif>Locked</option>
+            <option value="Available" @if(old('status') == 'Available') selected @endif>Available</option>
+            <option value="Occupied" @if(old('status') == 'Occupied') selected @endif>Occupied</option>
+            <option value="Locked" @if(old('status') == 'Locked') selected @endif>Locked</option>
         </select>
         @error('status')
             <small class="text-danger">{{ $message }}</small>
         @enderror
     </div>
 
-    <button type="submit" class="btn btn-primary">Simpan</button>
+    <button type="submit" class="btn btn-success">Tambah Kamar</button>
     <a href="{{ route('rooms.index') }}" class="btn btn-secondary">Kembali</a>
 </form>
+
 @endsection

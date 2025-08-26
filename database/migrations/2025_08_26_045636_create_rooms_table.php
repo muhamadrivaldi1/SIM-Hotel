@@ -8,28 +8,24 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::create('rooms', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('number')->unique();
-            $table->string('type'); // pastikan ada
-            $table->enum('status', ['Available', 'Occupied', 'Locked'])->default('Locked');
-            // $table->string('barcode_key')->unique();
+            $table->string('name'); // Nama kamar, misal "Room 101"
+            $table->string('number')->unique(); // Nomor kamar unik
+            $table->string('type'); // Tipe kamar, misal "Single", "Double"
+            $table->enum('status', ['Available', 'Occupied', 'Cleaning', 'Locked'])->default('Available'); // Status kamar
+            $table->string('barcode_key')->unique(); // Barcode unik
             $table->timestamps();
         });
     }
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('rooms');
     }

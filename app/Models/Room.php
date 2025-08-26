@@ -14,6 +14,6 @@ class Room extends Model
         'number',
         'type',
         'status',
-        'barcode_key'
+        'barcode_key',
     ];
 }

@@ -1,44 +1,71 @@
 @extends('admin.layouts.app')
-@section('title', 'Daftar Kamar')
+@section('title', 'Informasi Kamar')
 
 @section('content')
-<a href="{{ route('rooms.create') }}" class="btn btn-primary mb-3">Tambah Kamar</a>
 
-<table class="table table-bordered table-hover">
-    <thead>
-        <tr>
-            <th>No</th>
-            <th>Nomor Kamar</th>
-            <th>Tipe</th>
-            <th>Status</th>
-            <th>Aksi</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach($rooms as $room)
-        <tr>
-            <td>{{ $loop->iteration }}</td>
-            <td>{{ $room->number }}</td>
-            <td>{{ $room->type }}</td>
-            <td>
-                @if($room->status == 'Available')
-                    <span class="badge bg-success">{{ $room->status }}</span>
-                @elseif($room->status == 'Occupied')
-                    <span class="badge bg-warning">{{ $room->status }}</span>
-                @else
-                    <span class="badge bg-secondary">{{ $room->status }}</span>
-                @endif
-            </td>
-            <td>
-                <a href="{{ route('rooms.edit', $room->id) }}" class="btn btn-sm btn-info">Edit</a>
-                <form action="{{ route('rooms.destroy', $room->id) }}" method="POST" class="d-inline">
-                    @csrf
-                    @method('DELETE')
-                    <button class="btn btn-sm btn-danger">Hapus</button>
-                </form>
-            </td>
-        </tr>
-        @endforeach
-    </tbody>
-</table>
+
+<div class="row">
+    @foreach($rooms as $room)
+    <div class="col-md-3 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h5 class="card-title">Kamar {{ $room->number }}</h5>
+                <p class="text-muted">{{ $room->type }}</p>
+
+                <!-- Status -->
+                <div class="dropdown">
+                    <button class="btn btn-sm 
+                        @if($room->status == 'Available') btn-success 
+                        @elseif($room->status == 'Occupied') btn-warning
+                        @elseif($room->status == 'Cleaning') btn-secondary
+                        @else btn-dark @endif
+                        dropdown-toggle" 
+                        type="button" id="dropdownMenuButton{{ $room->id }}" 
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ $room->status }}
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ $room->id }}">
+                        @if($room->status == 'Available')
+                            <li>
+                                <form action="{{ route('checkin', $room->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item">Check In</button>
+                                </form>
+                            </li>
+                        @elseif($room->status == 'Occupied')
+                            <li>
+                                <form action="{{ route('checkout', $room->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item">Check Out</button>
+                                </form>
+                            </li>
+                            <li>
+                                <form action="{{ route('rooms.updateStatus', $room->id) }}" method="POST">
+                                    @csrf @method('PUT')
+                                    <input type="hidden" name="status" value="Cleaning">
+                                    <button type="submit" class="dropdown-item">Sedang Dibersihkan</button>
+                                </form>
+                            </li>
+                        @elseif($room->status == 'Cleaning' || $room->status == 'Locked')
+                            <li>
+                                <form action="{{ route('rooms.updateStatus', $room->id) }}" method="POST">
+                                    @csrf @method('PUT')
+                                    <input type="hidden" name="status" value="Available">
+                                    <button type="submit" class="dropdown-item">Tandai Tersedia</button>
+                                </form>
+                            </li>
+                        @endif
+                    </ul>
+                </div>
+
+                <!-- Barcode -->
+                <div class="mt-3">
+                    {!! DNS1D::getBarcodeHTML($room->barcode_key, 'C39', 1.5, 40) !!}
+                    <small class="d-block">{{ $room->barcode_key }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endforeach
+</div>
 @endsection
