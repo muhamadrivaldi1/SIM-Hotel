@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Room;
 use Illuminate\Http\Request;
+use App\Models\Checkin;
+
+
 
 class RoomController extends Controller
 {
@@ -114,7 +117,6 @@ class RoomController extends Controller
 
         return redirect()->route('rooms.adminIndex')->with('success', 'Kamar berhasil diperbarui!');
     }
-
     /**
      * Update status kamar saja
      */
@@ -161,4 +163,38 @@ class RoomController extends Controller
 
         return redirect()->route('rooms.adminIndex')->with('success', 'Kamar berhasil dihapus!');
     }
+
+    public function stats()
+{
+    // Total kamar
+    $totalRooms = Room::count();
+
+    // Kamar terpakai hari ini (checkin aktif)
+    $todayUsed = Checkin::whereDate('checkin_date', now()->toDateString())
+        ->where('status', 'Active') // Active = sedang dipakai
+        ->count();
+
+    // Kamar terpakai bulan ini
+    $monthUsed = Checkin::whereMonth('checkin_date', now()->month)
+        ->whereYear('checkin_date', now()->year)
+        ->where('status', 'Active')
+        ->count();
+
+    // Kamar saat ini sedang dipakai
+    $currentlyOccupied = Checkin::where('status', 'Active')->count();
+
+    // Kamar tersedia sekarang
+    $availableRooms = $totalRooms - $currentlyOccupied;
+
+    // Kamar kosong (status Available)
+    $emptyRooms = Room::where('status', 'Available')->count();
+
+    return response()->json([
+        'totalRooms' => $totalRooms,
+        'todayUsed' => $todayUsed,
+        'monthUsed' => $monthUsed,
+        'availableRooms' => $availableRooms,
+        'emptyRooms' => $emptyRooms,
+    ]);
+}
 }

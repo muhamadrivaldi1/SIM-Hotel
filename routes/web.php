@@ -12,6 +12,7 @@ use App\Http\Controllers\LaundryController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\KeyController;
 use App\Http\Controllers\GuestController;
+use App\Http\Controllers\OwnerAuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,19 +23,36 @@ use App\Http\Controllers\GuestController;
 // Redirect root ke login
 Route::get('/', fn() => redirect()->route('login'));
 
-// Login / Logout
+// Login / Logout admin
 Route::get('/login', [AdminController::class, 'loginForm'])->name('login');
 Route::post('/login', [AdminController::class, 'login']);
 Route::post('/logout', [AdminController::class, 'logout'])->name('logout');
 
-// Routes untuk user yang sudah login
+// Owner Login Form
+Route::get('/owner/login', [OwnerAuthController::class, 'showLoginForm'])
+    ->name('owner.login.form');
+
+// Proses login owner
+Route::post('/owner/login', [OwnerAuthController::class, 'login'])
+    ->name('owner.login');
+
+// Logout owner
+Route::post('/owner/logout', [OwnerAuthController::class, 'logout'])
+    ->name('owner.logout');
+
+// Owner Dashboard (hanya owner)
+Route::get('/owner/dashboard', [OwnerAuthController::class, 'dashboard'])
+    ->name('owner.dashboard')
+    ->middleware('auth:owner');
+
+// Routes untuk user yang sudah login (admin/front office)
 Route::middleware(['auth'])->group(function () {
 
     // Profile
     Route::get('/profile/edit', [AdminController::class, 'editProfile'])->name('profile.edit');
     Route::put('/profile/update', [AdminController::class, 'updateProfile'])->name('profile.update');
 
-    // Dashboard Front Office (pagination)
+    // Dashboard Front Office
     Route::get('/dashboard', [RoomController::class, 'index'])->name('dashboard');
 
     // Admin rooms (lihat semua kamar)
@@ -46,10 +64,11 @@ Route::middleware(['auth'])->group(function () {
     // Update status kamar
     Route::match(['put', 'patch'], '/rooms/{id}/status', [RoomController::class, 'updateStatus'])->name('rooms.updateStatus');
 
-    // Lock room via barcode
-    Route::post('/rooms/{id}/lock', [RoomController::class, 'lockWithBarcode'])->name('rooms.lockWithBarcode');   
-    Route::get('/rooms', [RoomController::class, 'index'])->name('rooms.index');
+    Route::get('/rooms/stats', [RoomController::class, 'stats'])->name('rooms.stats');
 
+    // Lock room via barcode
+    Route::post('/rooms/{id}/lock', [RoomController::class, 'lockWithBarcode'])->name('rooms.lockWithBarcode');
+    Route::get('/rooms', [RoomController::class, 'index'])->name('rooms.index');
 
     // Optional owner short open (jika ada)
     Route::post('/rooms/{room}/owner-short-open', [RoomController::class, 'ownerShortOpen'])->name('rooms.ownerShortOpen');
@@ -71,7 +90,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checkouts', [CheckOutController::class, 'index'])->name('checkouts.index');
     Route::post('/checkouts/{checkin}', [CheckOutController::class, 'store'])->name('checkouts.store');
     Route::post('/checkout/{room}', [CheckOutController::class, 'store'])->name('checkout');
-
 
     // Shifts
     Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');

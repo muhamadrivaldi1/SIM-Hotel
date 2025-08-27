@@ -1,4 +1,4 @@
-<div class="row row-cols-1 row-cols-md-4 g-4">
+{{-- <div class="row row-cols-1 row-cols-md-4 g-4">
     @foreach($rooms as $room)
         <div class="col">
             <div class="card shadow-sm h-100 border-0 rounded-4 overflow-hidden" style="transition: transform 0.3s;">
@@ -35,4 +35,4 @@
     <div class="d-flex justify-content-center mt-4">
         {{ $rooms->links('pagination::bootstrap-5') }}
     </div>
-@endif
+@endif --}}
