@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use App\Models\Checkin;
-
+use Illuminate\Support\Facades\DB;
 
 
 class RoomController extends Controller
@@ -118,26 +118,6 @@ class RoomController extends Controller
         return redirect()->route('rooms.adminIndex')->with('success', 'Kamar berhasil diperbarui!');
     }
     /**
-     * Update status kamar saja
-     */
-    public function updateStatus(Request $request, $id)
-    {
-        $room = Room::findOrFail($id);
-
-        $status = ucfirst(strtolower(trim($request->status)));
-        $validStatus = ['Available', 'Occupied', 'Cleaning', 'Locked'];
-
-        if (!in_array($status, $validStatus)) {
-            return redirect()->back()->with('error', 'Status tidak valid!');
-        }
-
-        $room->status = $status;
-        $room->save();
-
-        return redirect()->back()->with('success', 'Status kamar berhasil diupdate!');
-    }
-
-    /**
      * Kunci kamar menggunakan barcode
      */
     public function lockWithBarcode(Request $request, $id)
@@ -197,4 +177,35 @@ class RoomController extends Controller
         'emptyRooms' => $emptyRooms,
     ]);
 }
+
+    public function checkIn($id) {
+        $room = Room::findOrFail($id);
+        if($room->status === 'Available'){
+            $room->status = 'Occupied';
+            $room->save();
+        }
+        return redirect()->back()->with('success', 'Check-in berhasil!');
+    }
+
+    public function checkOut($id) {
+        $room = Room::findOrFail($id);
+        if($room->status === 'Occupied'){
+            $room->status = 'Cleaning';
+            $room->save();
+        }
+        return redirect()->back()->with('success', 'Check-out berhasil! Kamar kini dalam status Cleaning.');
+    }
+
+    public function updateStatus(Request $request, $id) {
+        $room = Room::findOrFail($id);
+        $status = $request->input('status');
+
+        $validStatus = ['Available', 'Cleaning', 'Locked'];
+        if(in_array($status, $validStatus)){
+            $room->status = $status;
+            $room->save();
+        }
+
+        return redirect()->back()->with('success', 'Status kamar diperbarui!');
+    }
 }

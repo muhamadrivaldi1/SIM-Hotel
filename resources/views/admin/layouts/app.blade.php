@@ -10,98 +10,108 @@
 
     <style>
     body {
-        background-color: #eef2f7;
+        background-color: #f4f6f9;
         font-family: 'Poppins', sans-serif;
     }
 
-    /* Sidebar kiri & kanan */
-    .sidebar, .sidebar-owner {
+    /* Sidebar Kiri */
+    .sidebar {
         background: linear-gradient(180deg, #1e3c72, #2a5298);
         color: #fff;
         min-height: 100vh;
         width: 240px;
-        box-shadow: 3px 0 10px rgba(0, 0, 0, 0.15);
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
     }
-    .sidebar h4, .sidebar-owner h4 {
-        padding: 10px 0;
+    .sidebar h4 {
+        padding: 12px 0;
         border-bottom: 1px solid rgba(255,255,255,0.1);
         font-weight: 600;
-        color: #fafafa;
-        letter-spacing: 1px;
         text-align: center;
+        font-size: 1.3rem;
     }
     .sidebar .nav-link {
         color: #ecf0f1;
-        margin: 6px 0;
-        padding: 10px 12px;
-        border-radius: 8px;
+        padding: 10px 14px;
+        margin: 6px 8px;
+        border-radius: 10px;
         transition: all 0.3s ease;
         font-weight: 500;
     }
-    .sidebar .nav-link i {
-        width: 22px;
-    }
+    .sidebar .nav-link i { width: 22px; }
     .sidebar .nav-link:hover {
-        background: rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.15);
         color: #fff !important;
         transform: translateX(5px);
     }
-    .sidebar .collapse-inner .nav-link {
-        padding-left: 25px;
-    }
-    .sidebar .collapse-inner .nav-link:hover {
-        background-color: rgba(255,255,255,0.15);
-    }
 
-    /* Sidebar kanan */
+    /* Sidebar Kanan */
     .sidebar-owner {
+        background: #ffffff;
+        min-height: 100vh;
         width: 260px;
-        box-shadow: -3px 0 10px rgba(0, 0, 0, 0.15);
+        box-shadow: -2px 0 12px rgba(0, 0, 0, 0.08);
+        padding: 20px;
+        border-radius: 0 15px 15px 0;
+    }
+    .sidebar-owner h4 {
+        font-weight: 700;
+        color: #1e3c72;
+        text-align: center;
+        margin-bottom: 20px;
     }
     .sidebar-owner h5 {
-        font-size: 1.3rem;
-        font-weight: 600;
-    }
-    .sidebar-owner p {
-        font-size: 0.9rem;
-        margin-bottom: 2px;
-    }
-    .sidebar-owner button {
-        border-radius: 25px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-    .sidebar-owner button:hover {
-        background: #3ab6ab;
-        color: #2c3e50;
-        transform: scale(1.05);
-    }
-
-    /* Konten utama */
-    .flex-grow-1 {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    }
-    h3 {
+        font-size: 1.4rem;
         font-weight: 700;
         color: #2c3e50;
     }
-    .breadcrumb {
-        background: transparent;
-        padding-left: 0;
+    .sidebar-owner p {
+        color: #555;
+        font-weight: 500;
+    }
+    .sidebar-owner button {
+        border-radius: 12px;
+        font-weight: 600;
+        transition: 0.3s ease;
+    }
+    .sidebar-owner button:hover {
+        background: linear-gradient(90deg, #2a5298, #1e3c72);
+        color: #fff;
+        transform: scale(1.05);
+    }
+
+    /* Main Content */
+    .flex-grow-1 {
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        padding: 25px;
+    }
+    h3 {
+        font-weight: 700;
+        color: #1e3c72;
     }
     .breadcrumb-item a {
         color: #2a5298;
         font-weight: 500;
+        text-decoration: none;
     }
 
-    /* Modal Login Owner */
+    /* User dropdown */
+    .btn-user {
+        border-radius: 12px;
+        font-weight: 500;
+        background: linear-gradient(90deg, #1e3c72, #2a5298);
+        color: #fff;
+    }
+    .btn-user:hover {
+        background: linear-gradient(90deg, #2a5298, #1e3c72);
+        color: #fff;
+    }
+
+    /* Modal */
     .modal-content {
-        border: none;
         border-radius: 16px;
-        overflow: hidden;
-        font-family: 'Poppins', sans-serif;
+        border: none;
     }
     .modal-header {
         background: linear-gradient(90deg, #1e3c72, #2a5298);
@@ -110,18 +120,15 @@
     .modal-footer .btn-success {
         background: linear-gradient(90deg, #2a5298, #1e3c72);
         border: none;
-        font-weight: 600;
-        border-radius: 25px;
+        border-radius: 12px;
         padding: 8px 20px;
-    }
-    .modal-footer .btn-success:hover {
-        background: linear-gradient(90deg, #1e3c72, #16365f);
-        transform: scale(1.03);
+        font-weight: 600;
     }
     </style>
 </head>
 <body>
     <div class="d-flex">
+
         <!-- Sidebar Kiri -->
         <div class="sidebar p-3">
             <h4>Admin</h4>
@@ -130,41 +137,21 @@
                     <a class="nav-link" href="{{ route('dashboard') }}">
                         <i class="fa fa-tachometer-alt"></i> Dashboard
                     </a>
-                    <hr>
                 </li>
+                <li><hr class="bg-light"></li>
                 <!-- Back Office -->
                 <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="collapse" href="#backOfficeMenu">
-                        <i class="fa fa-briefcase"></i> Back Office
-                        <i class="fa fa-chevron-down float-end"></i>
+                    <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#backOfficeMenu">
+                        <span><i class="fa fa-briefcase"></i> Back Office</span>
+                        <i class="fa fa-chevron-down small"></i>
                     </a>
                     <div class="collapse" id="backOfficeMenu">
-                        <ul class="nav flex-column ms-3 collapse-inner">
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('hrd.index') }}">
-                                    <i class="fa fa-user-tie"></i> HRD
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('finance.index') }}">
-                                    <i class="fa fa-dollar-sign"></i> Finance
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('laundry.index') }}">
-                                    <i class="fa fa-tshirt"></i> Laundry
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('restaurant.index') }}">
-                                    <i class="fa fa-utensils"></i> Restaurant
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('shifts.index') }}">
-                                    <i class="fa fa-calendar-alt"></i> Shift
-                                </a>
-                            </li>
+                        <ul class="nav flex-column ms-3 mt-2">
+                            <li><a class="nav-link" href="{{ route('hrd.index') }}"><i class="fa fa-user-tie"></i> HRD</a></li>
+                            <li><a class="nav-link" href="{{ route('finance.index') }}"><i class="fa fa-dollar-sign"></i> Finance</a></li>
+                            <li><a class="nav-link" href="{{ route('laundry.index') }}"><i class="fa fa-tshirt"></i> Laundry</a></li>
+                            <li><a class="nav-link" href="{{ route('restaurant.index') }}"><i class="fa fa-utensils"></i> Restaurant</a></li>
+                            <li><a class="nav-link" href="{{ route('shifts.index') }}"><i class="fa fa-calendar-alt"></i> Shift</a></li>
                         </ul>
                     </div>
                 </li>
@@ -172,35 +159,63 @@
         </div>
 
         <!-- Main Content -->
-        <div class="flex-grow-1 p-4">
-            <h3>@yield('title')</h3>
-            <nav aria-label="breadcrumb">
+        <div class="flex-grow-1">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="mb-0">@yield('title')</h3>
+
+                <div class="dropdown">
+                    <button class="btn btn-user d-flex align-items-center" type="button" id="userMenu" data-bs-toggle="dropdown">
+                        <i class="fa fa-user-circle me-2"></i> {{ Auth::user()->name ?? 'User' }}
+                        <i class="fa fa-chevron-down ms-2 small"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenu">
+                        <li>
+                            <a class="dropdown-item" href="{{ route('profile.edit') }}">
+                                <i class="fa fa-cog me-2"></i> Kelola Akun
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="fa fa-sign-out-alt me-2"></i> Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-3">
                 <ol class="breadcrumb">
                     @yield('breadcrumb')
                 </ol>
             </nav>
-            <div class="w-100">
-                <hr style="margin-top: 10px; margin-bottom: 20px; border-top: 2px solid #2a5298;">
-            </div>
 
-            @yield('content')
+            <hr class="mb-4">
+
+            <!-- Content -->
+            <div>
+                @yield('content')
+            </div>
         </div>
 
         <!-- Sidebar Kanan -->
-        <div class="sidebar-owner p-3">
-            <h4>Owner</h4>
-            <div class="mt-4">
-            <p class="mb-1"><i class="fa fa-bed text-light"></i> Kamar Terpakai Hari Ini:</p>
-            <h5 id="todayUsed" class="fw-bold text-light">{{ $roomsUsedToday ?? 0 }}</h5>
+        <div class="sidebar-owner">
+            <h4>Owner Panel</h4>
+            <p class="mb-1"><i class="fa fa-bed text-primary"></i> Kamar Terpakai Hari Ini</p>
+            <h5 id="todayUsed">{{ $roomsUsedToday ?? 0 }}</h5>
             <hr>
-            <p class="mt-3 mb-1"><i class="fa fa-calendar-check text-light"></i> Kamar Terpakai Bulan Ini:</p>
-            <h5 id="monthUsed" class="fw-bold text-light">{{ $roomsUsedMonth ?? 0 }}</h5>
-
+            <p class="mt-3 mb-1"><i class="fa fa-calendar-check text-success"></i> Kamar Terpakai Bulan Ini</p>
+            <h5 id="monthUsed">{{ $roomsUsedMonth ?? 0 }}</h5>
             <div class="mt-4">
-                <button class="btn btn-light w-100" data-bs-toggle="modal" data-bs-target="#modalOmset">
-                <i class="fa fa-money-bill-wave text-success"></i> Lihat Omset
+                <button class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#modalOmset">
+                    <i class="fa fa-money-bill-wave"></i> Lihat Omset
                 </button>
-            </div>
             </div>
         </div>
     </div>
@@ -208,7 +223,7 @@
     <!-- Modal Login Owner -->
     <div class="modal fade" id="modalOmset" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4 shadow">
+            <div class="modal-content shadow-lg">
                 <div class="modal-header">
                     <h5 class="modal-title">Login Owner / Manajer</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -225,9 +240,7 @@
                             <input type="password" name="password" class="form-control" required>
                         </div>
                         @if($errors->any())
-                            <div class="alert alert-danger">
-                                {{ $errors->first() }}
-                            </div>
+                            <div class="alert alert-danger">{{ $errors->first() }}</div>
                         @endif
                     </div>
                     <div class="modal-footer">
@@ -243,32 +256,31 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-$('#modalOmset form').submit(function(e) {
-    e.preventDefault();
-    let form = $(this);
+    $('#modalOmset form').submit(function(e) {
+        e.preventDefault();
+        let form = $(this);
 
-    $.ajax({
-        url: form.attr('action'),
-        method: form.attr('method'),
-        data: form.serialize(),
-        success: function(res) {
-            if(res.success) {
-                window.location.href = res.redirect; // redirect ke dashboard owner
-            } else {
-                // Tampilkan pesan error di modal
-                let alertBox = form.find('.alert');
-                if(alertBox.length === 0){
-                    form.find('.modal-body').prepend('<div class="alert alert-danger"></div>');
-                    alertBox = form.find('.alert');
+        $.ajax({
+            url: form.attr('action'),
+            method: form.attr('method'),
+            data: form.serialize(),
+            success: function(res) {
+                if(res.success) {
+                    window.location.href = res.redirect; // redirect ke dashboard owner
+                } else {
+                    let alertBox = form.find('.alert');
+                    if(alertBox.length === 0){
+                        form.find('.modal-body').prepend('<div class="alert alert-danger"></div>');
+                        alertBox = form.find('.alert');
+                    }
+                    alertBox.text(res.message);
                 }
-                alertBox.text(res.message);
+            },
+            error: function() {
+                alert('Terjadi kesalahan server!');
             }
-        },
-        error: function(xhr) {
-            alert('Terjadi kesalahan server!');
-        }
+        });
     });
-});
-</script>
+    </script>
 </body>
 </html>
