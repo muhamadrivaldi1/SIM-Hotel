@@ -18,10 +18,11 @@ class OwnerAuthController extends Controller
 
         $credentials = $request->only('username', 'password');
 
+        // Gunakan guard 'owner'
         if (Auth::guard('owner')->attempt($credentials)) {
             $request->session()->regenerate();
 
-            // Response AJAX
+            // Jika login via AJAX
             if ($request->ajax()) {
                 return response()->json([
                     'success' => true,
@@ -32,15 +33,16 @@ class OwnerAuthController extends Controller
             return redirect()->route('owner.dashboard');
         }
 
-        // Login gagal
+        // Jika login gagal
+        $error = ['username' => 'Username atau password salah!'];
         if ($request->ajax()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Username atau password salah!',
+                'message' => $error['username'],
             ]);
         }
 
-        return back()->withErrors(['username' => 'Username atau password salah!']);
+        return back()->withErrors($error);
     }
 
     // Logout owner
@@ -56,8 +58,8 @@ class OwnerAuthController extends Controller
     // Dashboard owner
     public function dashboard()
     {
-        // Statistik kamar
-        $roomsUsedToday = CheckIn::whereDate('created_at', now())->count();
+        // Statistik kamar saat load dashboard
+        $roomsUsedToday = CheckIn::whereDate('created_at', now()->toDateString())->count();
         $roomsUsedMonth = CheckIn::whereMonth('created_at', now()->month)->count();
 
         // Data grafik bulanan
@@ -68,7 +70,7 @@ class OwnerAuthController extends Controller
         for ($i = 1; $i <= 12; $i++) {
             $labels[] = date('F', mktime(0, 0, 0, $i, 1));
             $visitorData[] = CheckIn::whereMonth('created_at', $i)->count();
-            $revenueData[] = CheckIn::whereMonth('created_at', $i)->sum('total_price'); // pastikan kolom ada
+            $revenueData[] = CheckIn::whereMonth('created_at', $i)->sum('total_price'); // pastikan kolom total_price ada
         }
 
         return view('owner.dashboard', compact(
@@ -78,5 +80,21 @@ class OwnerAuthController extends Controller
             'visitorData',
             'revenueData'
         ));
+    }
+
+    // Endpoint AJAX untuk update real-time kamar
+    // Endpoint AJAX untuk update real-time kamar
+    public function roomsUsage()
+    {
+        $today = now()->toDateString();
+        $startOfMonth = now()->startOfMonth()->toDateString();
+
+        $roomsUsedToday = CheckIn::whereDate('created_at', $today)->count();
+        $roomsUsedMonth = CheckIn::whereDate('created_at', '>=', $startOfMonth)->count();
+
+        return response()->json([
+            'roomsUsedToday' => $roomsUsedToday,
+            'roomsUsedMonth' => $roomsUsedMonth,
+        ]);
     }
 }

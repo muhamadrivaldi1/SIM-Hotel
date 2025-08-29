@@ -17,40 +17,22 @@
                 </div>
 
                 <!-- Tombol Status -->
-                <div class="d-grid gap-3 mb-3 button-group">
-                    <!-- Check In -->
+                <div class="d-grid gap-3 mb-3">
+                    @php
+                        $statusClass = match($room->status) {
+                            'Available' => 'btn-success',
+                            'Occupied' => 'btn-danger',
+                            'Cleaning' => 'btn-warning text-dark',
+                            default => 'btn-secondary',
+                        };
+                    @endphp
+
                     <a href="{{ route('rooms.show', $room->id) }}" 
-                       class="btn btn-success btn-lg rounded-pill btn-action w-100"
-                       data-action="checkin" data-room="{{ $room->id }}">
-                        <i class="fa fa-check-circle me-2"></i> Check In
+                       class="btn btn-lg rounded-pill w-100 {{ $statusClass }}"
+                       data-room="{{ $room->id }}">
+                        {{ $room->status }}
                     </a>
-
-                    <!-- Check Out -->
-                    <form action="{{ route('checkout', $room->id) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-danger btn-lg rounded-pill btn-action w-100"
-                                data-action="checkout" data-room="{{ $room->id }}">
-                            <i class="fa fa-user me-2"></i> Check Out
-                        </button>
-                    </form>
-
-                    <!-- Cleaning -->
-                    <form action="{{ route('rooms.updateStatus', $room->id) }}" method="POST">
-                        @csrf
-                        @method('PUT')
-                        <input type="hidden" name="status" value="Cleaning">
-                        <button type="submit" class="btn btn-warning btn-lg rounded-pill btn-action w-100 text-dark"
-                                data-action="cleaning" data-room="{{ $room->id }}">
-                            <i class="fa fa-broom me-2"></i> Cleaning
-                        </button>
-                    </form>
                 </div>
-
-                <!-- Tombol Detail -->
-                {{-- <a href="{{ route('rooms.show', $room->id) }}" 
-                   class="btn btn-outline-primary btn-sm mt-auto rounded-pill w-100">
-                    <i class="fa fa-eye me-1"></i> Detail Kamar
-                </a> --}}
 
             </div>
         </div>
@@ -78,7 +60,6 @@
     @endif
 </div>
 
-<!-- Styles -->
 <style>
 .room-card {
     border-radius: 1.25rem;
@@ -92,24 +73,14 @@
     box-shadow: 0 16px 40px rgba(0,0,0,0.15);
 }
 
-.btn-action {
+.btn-lg {
     font-weight: 600;
     font-size: 1rem;
     transition: all 0.2s ease-in-out;
 }
 
-.btn-action:hover {
+.btn-lg:hover {
     transform: scale(1.03);
-}
-
-a.btn-outline-primary {
-    transition: all 0.2s;
-}
-
-a.btn-outline-primary:hover {
-    background: #0d6efd;
-    color: white;
-    transform: scale(1.02);
 }
 </style>
 

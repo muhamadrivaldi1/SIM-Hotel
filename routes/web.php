@@ -14,7 +14,8 @@ use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\KeyController;
 use App\Http\Controllers\GuestController;
 
-// Redirect root ke login
+
+// ================== Redirect Root ke Login ==================
 Route::get('/', fn() => redirect()->route('login'));
 
 // ================== AUTH ADMIN ==================
@@ -32,7 +33,13 @@ Route::prefix('owner')->group(function () {
     Route::get('/dashboard', [OwnerAuthController::class, 'dashboard'])
         ->middleware('auth:owner')
         ->name('owner.dashboard');
+
+    // ================== AJAX Real-Time Kamar Terpakai ==================
+    Route::middleware('auth:owner')->group(function () {
+        Route::get('/rooms-usage', [OwnerAuthController::class, 'roomsUsage'])->name('owner.rooms-usage');
+    });
 });
+
 
 // ================== ADMIN / FRONT OFFICE ==================
 Route::middleware(['auth'])->group(function () {
@@ -49,16 +56,22 @@ Route::middleware(['auth'])->group(function () {
     // ---------- Rooms ----------
     Route::prefix('rooms')->group(function () {
         Route::get('/', [RoomController::class, 'index'])->name('rooms.index');
-        Route::get('/{room}', [RoomController::class, 'show'])->name('rooms.show');
         Route::get('/admin', [RoomController::class, 'adminIndex'])->name('rooms.adminIndex');
         Route::get('/stats', [RoomController::class, 'stats'])->name('rooms.stats');
+
+        Route::get('/{room}', [RoomController::class, 'show'])->name('rooms.show');
         Route::get('/{room}/barcode', [RoomController::class, 'barcode'])->name('rooms.barcode');
+
         Route::post('/{id}/lock', [RoomController::class, 'lockWithBarcode'])->name('rooms.lockWithBarcode');
         Route::post('/{room}/owner-short-open', [RoomController::class, 'ownerShortOpen'])->name('rooms.ownerShortOpen');
         Route::match(['put', 'patch'], '/{id}/status', [RoomController::class, 'updateStatus'])->name('rooms.updateStatus');
 
-        // Resource routes, excluding index karena sudah ada
-        Route::resource('/', RoomController::class)->except(['index']);
+        // Resource: tambah/edit/hapus (tanpa index karena sudah ada di atas)
+        Route::get('/create', [RoomController::class, 'create'])->name('rooms.create');
+        Route::post('/', [RoomController::class, 'store'])->name('rooms.store');
+        Route::get('/{room}/edit', [RoomController::class, 'edit'])->name('rooms.edit');
+        Route::put('/{room}', [RoomController::class, 'update'])->name('rooms.update');
+        Route::delete('/{room}', [RoomController::class, 'destroy'])->name('rooms.destroy');
     });
 
     // ---------- Keys ----------
@@ -71,16 +84,21 @@ Route::middleware(['auth'])->group(function () {
 
     // ---------- Check-ins ----------
     Route::prefix('checkins')->group(function () {
-        Route::get('/', [CheckInController::class, 'index'])->name('checkin.index');
+        Route::get('/', [CheckInController::class, 'index'])->name('checkin.index'); // tampilkan daftar kamar available
         Route::get('/{room}/create', [CheckInController::class, 'create'])->name('checkins.create');
-        Route::post('/{room}', [CheckInController::class, 'store'])->name('checkin'); // manual check-in
-        Route::post('/barcode', [CheckInController::class, 'checkInBarcode'])->name('checkin.barcode'); // barcode
+        Route::post('/{room}', [CheckInController::class, 'store'])->name('checkin.store'); // manual check-in
+        // Route::post('/barcode', [CheckInController::class, 'checkInBarcode'])->name('checkin.barcode'); // ✅ samakan dengan controller
         Route::get('/{checkin}', [CheckInController::class, 'show'])->name('checkins.show');
         Route::get('/invoice/{checkin}', [CheckInController::class, 'invoice'])->name('checkins.invoice');
+        Route::post('/checkin/barcode', [CheckInController::class, 'checkInBarcode'])->name('checkin.barcode');
     });
 
+
     // ---------- Check-outs ----------
-    Route::post('/checkout/{room}', [CheckOutController::class, 'store'])->name('checkout');
+    Route::prefix('checkouts')->group(function () {
+        Route::post('/{room}', [CheckOutController::class, 'store'])->name('checkouts.store');
+        Route::get('/history', [CheckOutController::class, 'history'])->name('checkouts.history'); // kalau ada riwayat
+    });
 
     // ---------- Shifts ----------
     Route::prefix('shifts')->group(function () {
@@ -111,7 +129,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ---------- Finance ----------
-    Route::prefix('finance')->middleware('auth')->group(function () {
+    Route::prefix('finance')->group(function () {
         Route::get('/', [FinanceController::class, 'index'])->name('finance.index');
         Route::get('/create', [FinanceController::class, 'create'])->name('finance.create');
         Route::post('/', [FinanceController::class, 'store'])->name('finance.store');

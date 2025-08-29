@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 class RoomController extends Controller
 {
     /**
-     * Front Office - tampilkan kamar dengan pagination
+     * Front Office - tampilkan kamar dengan pagination (dashboard FO).
      */
     public function index()
     {
@@ -18,7 +18,7 @@ class RoomController extends Controller
     }
 
     /**
-     * Admin - tampilkan semua kamar
+     * Admin - tampilkan semua kamar (halaman manajemen kamar).
      */
     public function adminIndex()
     {
@@ -27,7 +27,7 @@ class RoomController extends Controller
     }
 
     /**
-     * Tampilkan form tambah kamar
+     * Form tambah kamar baru.
      */
     public function create()
     {
@@ -35,7 +35,7 @@ class RoomController extends Controller
     }
 
     /**
-     * Simpan kamar baru
+     * Simpan kamar baru ke database.
      */
     public function store(Request $request)
     {
@@ -46,7 +46,7 @@ class RoomController extends Controller
         ]);
 
         $status = ucfirst(strtolower(trim($request->status)));
-        $validStatus = ['Available', 'Occupied', 'Cleaning', 'Locked'];
+        $validStatus = ['Available', 'Occupied', 'Cleaning', 'Locked', 'Maintenance'];
 
         if (!in_array($status, $validStatus)) {
             return redirect()->back()->with('error', 'Status tidak valid!');
@@ -67,7 +67,7 @@ class RoomController extends Controller
     }
 
     /**
-     * Tampilkan detail kamar
+     * Detail kamar.
      */
     public function show($id)
     {
@@ -76,7 +76,7 @@ class RoomController extends Controller
     }
 
     /**
-     * Tampilkan form edit kamar
+     * Form edit kamar.
      */
     public function edit($id)
     {
@@ -85,7 +85,7 @@ class RoomController extends Controller
     }
 
     /**
-     * Update kamar
+     * Update data kamar.
      */
     public function update(Request $request, $id)
     {
@@ -115,7 +115,7 @@ class RoomController extends Controller
     }
 
     /**
-     * Kunci kamar menggunakan barcode
+     * Kunci kamar menggunakan barcode (akses fisik).
      */
     public function lockWithBarcode(Request $request, $id)
     {
@@ -125,13 +125,13 @@ class RoomController extends Controller
             $room->status = 'Locked';
             $room->save();
             return redirect()->back()->with('success', 'Kamar berhasil dikunci!');
-        } else {
-            return redirect()->back()->with('error', 'Barcode salah! Kunci kamar gagal.');
         }
+
+        return redirect()->back()->with('error', 'Barcode salah! Kunci kamar gagal.');
     }
 
     /**
-     * Hapus kamar
+     * Hapus kamar.
      */
     public function destroy($id)
     {
@@ -142,7 +142,7 @@ class RoomController extends Controller
     }
 
     /**
-     * Statistik kamar
+     * Statistik kamar (untuk dashboard chart/monitoring).
      */
     public function stats()
     {
@@ -161,16 +161,16 @@ class RoomController extends Controller
             ->count();
 
         return response()->json([
-            'totalRooms' => $totalRooms,
-            'todayUsed' => $todayUsed,
-            'monthUsed' => $monthUsed,
-            'availableRooms' => $availableRooms,
-            'emptyRooms' => $emptyRooms,
+            'totalRooms'      => $totalRooms,
+            'todayUsed'       => $todayUsed,
+            'monthUsed'       => $monthUsed,
+            'availableRooms'  => $availableRooms,
+            'emptyRooms'      => $emptyRooms,
         ]);
     }
 
     /**
-     * Check In kamar
+     * Check In kamar → status jadi Occupied.
      */
     public function checkIn($id)
     {
@@ -180,14 +180,13 @@ class RoomController extends Controller
             return redirect()->back()->with('error', 'Kamar tidak tersedia untuk check-in!');
         }
 
-        $room->status = 'Occupied';
-        $room->save();
+        $room->update(['status' => 'Occupied']);
 
         return redirect()->back()->with('success', 'Check-in berhasil!');
     }
 
     /**
-     * Check Out kamar
+     * Check Out kamar → status otomatis jadi Cleaning.
      */
     public function checkOut($id)
     {
@@ -197,28 +196,20 @@ class RoomController extends Controller
             return redirect()->back()->with('error', 'Kamar tidak sedang dipakai!');
         }
 
-        $room->status = 'Cleaning';
-        $room->save();
+        $room->update(['status' => 'Cleaning']);
 
         return redirect()->back()->with('success', 'Check-out berhasil! Kamar kini dalam status Cleaning.');
     }
 
     /**
-     * Update status kamar (Cleaning, Available, Locked)
+     * Update status kamar (Admin bisa ubah manual).
      */
     public function updateStatus(Request $request, $id)
     {
         $room = Room::findOrFail($id);
-        $status = ucfirst(strtolower($request->input('status')));
+        $room->update(['status' => $request->status]);
 
-        $validStatus = ['Available', 'Cleaning', 'Locked', 'Occupied'];
-        if (!in_array($status, $validStatus)) {
-            return redirect()->back()->with('error', 'Status tidak valid!');
-        }
-
-        $room->status = $status;
-        $room->save();
-
-        return redirect()->back()->with('success', 'Status kamar diperbarui!');
+        return redirect()->route('rooms.show', $room->id)
+            ->with('success', "Status kamar {$room->number} diperbarui menjadi {$request->status}.");
     }
 }
