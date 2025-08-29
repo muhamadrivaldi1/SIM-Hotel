@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\OwnerAuthController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\CheckOutController;
@@ -12,85 +13,112 @@ use App\Http\Controllers\LaundryController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\KeyController;
 use App\Http\Controllers\GuestController;
-use App\Http\Controllers\OwnerAuthController;
 
 // Redirect root ke login
 Route::get('/', fn() => redirect()->route('login'));
 
 // ================== AUTH ADMIN ==================
-Route::get('/login', [AdminController::class, 'loginForm'])->name('login');
-Route::post('/login', [AdminController::class, 'login']);
-Route::post('/logout', [AdminController::class, 'logout'])->name('logout');
+Route::prefix('admin')->group(function () {
+    Route::get('/login', [AdminController::class, 'loginForm'])->name('login');
+    Route::post('/login', [AdminController::class, 'login'])->name('login.post');
+    Route::post('/logout', [AdminController::class, 'logout'])->name('logout');
+});
 
 // ================== AUTH OWNER ==================
-Route::get('/owner/login', [OwnerAuthController::class, 'showLoginForm'])->name('owner.login.form');
-Route::post('/owner/login', [OwnerAuthController::class, 'login'])->name('owner.login');
-Route::post('/owner/logout', [OwnerAuthController::class, 'logout'])->name('owner.logout');
-Route::get('/owner/dashboard', [OwnerAuthController::class, 'dashboard'])
-    ->name('owner.dashboard')
-    ->middleware('auth:owner');
+Route::prefix('owner')->group(function () {
+    Route::get('/login', [OwnerAuthController::class, 'showLoginForm'])->name('owner.login.form');
+    Route::post('/login', [OwnerAuthController::class, 'login'])->name('owner.login');
+    Route::post('/logout', [OwnerAuthController::class, 'logout'])->name('owner.logout');
+    Route::get('/dashboard', [OwnerAuthController::class, 'dashboard'])
+        ->middleware('auth:owner')
+        ->name('owner.dashboard');
+});
 
 // ================== ADMIN / FRONT OFFICE ==================
 Route::middleware(['auth'])->group(function () {
 
     // ---------- Profile ----------
-    Route::get('/profile/edit', [AdminController::class, 'editProfile'])->name('profile.edit');
-    Route::put('/profile/update', [AdminController::class, 'updateProfile'])->name('profile.update');
+    Route::prefix('profile')->group(function () {
+        Route::get('edit', [AdminController::class, 'editProfile'])->name('profile.edit');
+        Route::put('update', [AdminController::class, 'updateProfile'])->name('profile.update');
+    });
 
     // ---------- Dashboard ----------
     Route::get('/dashboard', [RoomController::class, 'index'])->name('dashboard');
 
     // ---------- Rooms ----------
-    Route::get('/rooms', [RoomController::class, 'index'])->name('rooms.index');
-    Route::get('/rooms/admin', [RoomController::class, 'adminIndex'])->name('rooms.adminIndex');
-    Route::resource('rooms', RoomController::class)->except(['index']);
-    Route::match(['put', 'patch'], '/rooms/{id}/status', [RoomController::class, 'updateStatus'])->name('rooms.updateStatus');
-    Route::get('/rooms/stats', [RoomController::class, 'stats'])->name('rooms.stats');
-    Route::get('/rooms/{room}/barcode', [RoomController::class, 'barcode'])->name('rooms.barcode');
-    Route::post('/rooms/{id}/lock', [RoomController::class, 'lockWithBarcode'])->name('rooms.lockWithBarcode');
-    Route::post('/rooms/{room}/owner-short-open', [RoomController::class, 'ownerShortOpen'])->name('rooms.ownerShortOpen');
+    Route::prefix('rooms')->group(function () {
+        Route::get('/', [RoomController::class, 'index'])->name('rooms.index');
+        Route::get('/{room}', [RoomController::class, 'show'])->name('rooms.show');
+        Route::get('/admin', [RoomController::class, 'adminIndex'])->name('rooms.adminIndex');
+        Route::get('/stats', [RoomController::class, 'stats'])->name('rooms.stats');
+        Route::get('/{room}/barcode', [RoomController::class, 'barcode'])->name('rooms.barcode');
+        Route::post('/{id}/lock', [RoomController::class, 'lockWithBarcode'])->name('rooms.lockWithBarcode');
+        Route::post('/{room}/owner-short-open', [RoomController::class, 'ownerShortOpen'])->name('rooms.ownerShortOpen');
+        Route::match(['put', 'patch'], '/{id}/status', [RoomController::class, 'updateStatus'])->name('rooms.updateStatus');
+
+        // Resource routes, excluding index karena sudah ada
+        Route::resource('/', RoomController::class)->except(['index']);
+    });
 
     // ---------- Keys ----------
-    Route::get('/keys', [KeyController::class, 'index'])->name('keys.index');
-    Route::post('/keys/{room}/regenerate', [KeyController::class, 'regenerate'])->name('keys.regenerate');
-    Route::post('/keys/scan', [KeyController::class, 'scan'])->name('keys.scan');
-    Route::get('/keys/{key}/barcode', [KeyController::class, 'showBarcode'])->name('keys.barcode');
+    Route::prefix('keys')->group(function () {
+        Route::get('/', [KeyController::class, 'index'])->name('keys.index');
+        Route::post('/{room}/regenerate', [KeyController::class, 'regenerate'])->name('keys.regenerate');
+        Route::post('/scan', [KeyController::class, 'scan'])->name('keys.scan');
+        Route::get('/{key}/barcode', [KeyController::class, 'showBarcode'])->name('keys.barcode');
+    });
 
     // ---------- Check-ins ----------
-    Route::get('/checkins', [CheckInController::class, 'index'])->name('checkin.index'); // halaman daftar kamar
-    Route::get('/checkins/{room}/create', [CheckInController::class, 'create'])->name('checkins.create');
-    Route::post('/checkins/{room}', [CheckInController::class, 'store'])->name('checkin'); // check-in manual
-    Route::post('/checkin/barcode', [CheckInController::class, 'checkInBarcode'])->name('checkin.barcode'); // check-in via barcode
-    Route::get('/checkins/{checkin}', [CheckInController::class, 'show'])->name('checkins.show');
-    Route::get('/invoice/{checkin}', [CheckInController::class, 'invoice'])->name('checkins.invoice');
+    Route::prefix('checkins')->group(function () {
+        Route::get('/', [CheckInController::class, 'index'])->name('checkin.index');
+        Route::get('/{room}/create', [CheckInController::class, 'create'])->name('checkins.create');
+        Route::post('/{room}', [CheckInController::class, 'store'])->name('checkin'); // manual check-in
+        Route::post('/barcode', [CheckInController::class, 'checkInBarcode'])->name('checkin.barcode'); // barcode
+        Route::get('/{checkin}', [CheckInController::class, 'show'])->name('checkins.show');
+        Route::get('/invoice/{checkin}', [CheckInController::class, 'invoice'])->name('checkins.invoice');
+    });
 
     // ---------- Check-outs ----------
     Route::post('/checkout/{room}', [CheckOutController::class, 'store'])->name('checkout');
 
-
     // ---------- Shifts ----------
-    Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');
-    Route::post('/shifts/open', [ShiftController::class, 'open'])->name('shifts.open');
-    Route::post('/shifts/handover-scan', [ShiftController::class, 'handoverScan'])->name('shifts.handoverScan');
-    Route::post('/shifts/{shift}/close', [ShiftController::class, 'close'])->name('shifts.close');
+    Route::prefix('shifts')->group(function () {
+        Route::get('/', [ShiftController::class, 'index'])->name('shifts.index');
+        Route::post('/open', [ShiftController::class, 'open'])->name('shifts.open');
+        Route::post('/handover-scan', [ShiftController::class, 'handoverScan'])->name('shifts.handoverScan');
+        Route::post('/{shift}/close', [ShiftController::class, 'close'])->name('shifts.close');
+    });
 
     // ---------- HRD ----------
-    Route::get('/hrd', [HRDController::class, 'index'])->name('hrd.index');
-    Route::post('/hrd', [HRDController::class, 'store'])->name('hrd.store');
-    Route::put('/hrd/{employee}', [HRDController::class, 'update'])->name('hrd.update');
-    Route::delete('/hrd/{employee}', [HRDController::class, 'destroy'])->name('hrd.destroy');
+    Route::prefix('hrd')->group(function () {
+        Route::get('/', [HRDController::class, 'index'])->name('hrd.index');
+        Route::post('/', [HRDController::class, 'store'])->name('hrd.store');
+        Route::put('/{employee}', [HRDController::class, 'update'])->name('hrd.update');
+        Route::delete('/{employee}', [HRDController::class, 'destroy'])->name('hrd.destroy');
+    });
 
     // ---------- Restaurant ----------
-    Route::get('/restaurant', [RestaurantController::class, 'index'])->name('restaurant.index');
-    Route::post('/restaurant', [RestaurantController::class, 'store'])->name('restaurant.store');
+    Route::prefix('restaurant')->group(function () {
+        Route::get('/', [RestaurantController::class, 'index'])->name('restaurant.index');
+        Route::post('/', [RestaurantController::class, 'store'])->name('restaurant.store');
+    });
 
     // ---------- Laundry ----------
-    Route::get('/laundry', [LaundryController::class, 'index'])->name('laundry.index');
-    Route::post('/laundry', [LaundryController::class, 'store'])->name('laundry.store');
+    Route::prefix('laundry')->group(function () {
+        Route::get('/', [LaundryController::class, 'index'])->name('laundry.index');
+        Route::post('/', [LaundryController::class, 'store'])->name('laundry.store');
+    });
 
     // ---------- Finance ----------
-    Route::get('/finance', [FinanceController::class, 'index'])->name('finance.index');
-    Route::get('/finance/daily', [FinanceController::class, 'daily'])->name('finance.daily');
+    Route::prefix('finance')->middleware('auth')->group(function () {
+        Route::get('/', [FinanceController::class, 'index'])->name('finance.index');
+        Route::get('/create', [FinanceController::class, 'create'])->name('finance.create');
+        Route::post('/', [FinanceController::class, 'store'])->name('finance.store');
+        Route::get('/{finance}/edit', [FinanceController::class, 'edit'])->name('finance.edit');
+        Route::put('/{finance}', [FinanceController::class, 'update'])->name('finance.update');
+        Route::delete('/{finance}', [FinanceController::class, 'destroy'])->name('finance.destroy');
+    });
 
     // ---------- Guests ----------
     Route::resource('guests', GuestController::class)->only(['index', 'store']);

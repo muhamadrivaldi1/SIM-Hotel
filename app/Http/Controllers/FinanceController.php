@@ -7,84 +7,53 @@ use Illuminate\Http\Request;
 
 class FinanceController extends Controller
 {
-    /**
-     * Tampilkan daftar laporan keuangan
-     */
     public function index()
     {
-        $finances = Finance::orderBy('date', 'desc')->paginate(20);
-        $totalIncome = Finance::income()->sum('amount');
-        $totalExpense = Finance::expense()->sum('amount');
-        $balance = $totalIncome - $totalExpense;
-
-        return view('finance.index', compact('finances', 'totalIncome', 'totalExpense', 'balance'));
+        $finances = Finance::orderBy('date', 'desc')->paginate(10);
+        return view('finance.index', compact('finances'));
     }
 
-    /**
-     * Form tambah transaksi keuangan
-     */
     public function create()
     {
         return view('finance.create');
     }
 
-    /**
-     * Simpan transaksi baru
-     */
     public function store(Request $request)
     {
-        $request->validate([
-            'date'        => 'required|date',
+        $validated = $request->validate([
+            'transaction_type' => 'required|in:Income,Expense',
+            'amount' => 'required|numeric',
             'description' => 'required|string|max:255',
-            'amount'      => 'required|numeric',
-            'type'        => 'required|in:income,expense',
+            'date' => 'required|date',
         ]);
 
-        Finance::create($request->all());
+        Finance::create($validated);
 
-        return redirect()->route('finance.index')->with('success', 'Transaksi keuangan berhasil ditambahkan');
+        return redirect()->route('finance.index')->with('success', 'Transaction added successfully.');
     }
 
-    /**
-     * Tampilkan detail transaksi
-     */
-    public function show(Finance $finance)
-    {
-        return view('finance.show', compact('finance'));
-    }
-
-    /**
-     * Form edit transaksi
-     */
     public function edit(Finance $finance)
     {
         return view('finance.edit', compact('finance'));
     }
 
-    /**
-     * Update transaksi
-     */
     public function update(Request $request, Finance $finance)
     {
-        $request->validate([
-            'date'        => 'required|date',
+        $validated = $request->validate([
+            'transaction_type' => 'required|in:Income,Expense',
+            'amount' => 'required|numeric',
             'description' => 'required|string|max:255',
-            'amount'      => 'required|numeric',
-            'type'        => 'required|in:income,expense',
+            'date' => 'required|date',
         ]);
 
-        $finance->update($request->all());
+        $finance->update($validated);
 
-        return redirect()->route('finance.index')->with('success', 'Transaksi keuangan berhasil diperbarui');
+        return redirect()->route('finance.index')->with('success', 'Transaction updated successfully.');
     }
 
-    /**
-     * Hapus transaksi
-     */
     public function destroy(Finance $finance)
     {
         $finance->delete();
-
-        return redirect()->route('finance.index')->with('success', 'Transaksi keuangan berhasil dihapus');
+        return redirect()->route('finance.index')->with('success', 'Transaction deleted successfully.');
     }
 }

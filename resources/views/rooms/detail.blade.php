@@ -36,7 +36,7 @@
                         </button>
                     </form>
 
-                    <form action="{{ route('rooms.updateStatus', $room->id) }}" method="POST">
+                    {{-- <form action="{{ route('rooms.updateStatus', $room->id) }}" method="POST">
                         @csrf @method('PUT')
                         <input type="hidden" name="status" value="Cleaning">
                         <button type="submit" 
@@ -45,7 +45,7 @@
                             {{ $room->status === 'Occupied' ? '' : 'disabled' }}>
                             <i class="fa fa-broom me-1"></i> Bersihkan
                         </button>
-                    </form>
+                    </form> --}}
 
                     <form action="{{ route('rooms.updateStatus', $room->id) }}" method="POST">
                         @csrf @method('PUT')

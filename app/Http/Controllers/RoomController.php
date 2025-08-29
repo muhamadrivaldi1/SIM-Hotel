@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Room;
-use Illuminate\Http\Request;
 use App\Models\Checkin;
-use Illuminate\Support\Facades\DB;
-
+use Illuminate\Http\Request;
 
 class RoomController extends Controller
 {
@@ -15,11 +13,9 @@ class RoomController extends Controller
      */
     public function index()
     {
-        // 8 kamar per halaman
         $rooms = Room::orderBy('number')->paginate(8);
         return view('admin.dashboard', compact('rooms'));
     }
-
 
     /**
      * Admin - tampilkan semua kamar
@@ -117,6 +113,7 @@ class RoomController extends Controller
 
         return redirect()->route('rooms.adminIndex')->with('success', 'Kamar berhasil diperbarui!');
     }
+
     /**
      * Kunci kamar menggunakan barcode
      */
@@ -144,67 +141,83 @@ class RoomController extends Controller
         return redirect()->route('rooms.adminIndex')->with('success', 'Kamar berhasil dihapus!');
     }
 
+    /**
+     * Statistik kamar
+     */
     public function stats()
-{
-    // Total kamar
-    $totalRooms = Room::count();
+    {
+        $totalRooms = Room::count();
+        $currentlyOccupied = Checkin::where('status', 'Active')->count();
+        $availableRooms = $totalRooms - $currentlyOccupied;
+        $emptyRooms = Room::where('status', 'Available')->count();
 
-    // Kamar terpakai hari ini (checkin aktif)
-    $todayUsed = Checkin::whereDate('checkin_date', now()->toDateString())
-        ->where('status', 'Active') // Active = sedang dipakai
-        ->count();
+        $todayUsed = Checkin::whereDate('checkin_date', now()->toDateString())
+            ->where('status', 'Active')
+            ->count();
 
-    // Kamar terpakai bulan ini
-    $monthUsed = Checkin::whereMonth('checkin_date', now()->month)
-        ->whereYear('checkin_date', now()->year)
-        ->where('status', 'Active')
-        ->count();
+        $monthUsed = Checkin::whereMonth('checkin_date', now()->month)
+            ->whereYear('checkin_date', now()->year)
+            ->where('status', 'Active')
+            ->count();
 
-    // Kamar saat ini sedang dipakai
-    $currentlyOccupied = Checkin::where('status', 'Active')->count();
+        return response()->json([
+            'totalRooms' => $totalRooms,
+            'todayUsed' => $todayUsed,
+            'monthUsed' => $monthUsed,
+            'availableRooms' => $availableRooms,
+            'emptyRooms' => $emptyRooms,
+        ]);
+    }
 
-    // Kamar tersedia sekarang
-    $availableRooms = $totalRooms - $currentlyOccupied;
-
-    // Kamar kosong (status Available)
-    $emptyRooms = Room::where('status', 'Available')->count();
-
-    return response()->json([
-        'totalRooms' => $totalRooms,
-        'todayUsed' => $todayUsed,
-        'monthUsed' => $monthUsed,
-        'availableRooms' => $availableRooms,
-        'emptyRooms' => $emptyRooms,
-    ]);
-}
-
-    public function checkIn($id) {
+    /**
+     * Check In kamar
+     */
+    public function checkIn($id)
+    {
         $room = Room::findOrFail($id);
-        if($room->status === 'Available'){
-            $room->status = 'Occupied';
-            $room->save();
+
+        if ($room->status !== 'Available') {
+            return redirect()->back()->with('error', 'Kamar tidak tersedia untuk check-in!');
         }
+
+        $room->status = 'Occupied';
+        $room->save();
+
         return redirect()->back()->with('success', 'Check-in berhasil!');
     }
 
-    public function checkOut($id) {
+    /**
+     * Check Out kamar
+     */
+    public function checkOut($id)
+    {
         $room = Room::findOrFail($id);
-        if($room->status === 'Occupied'){
-            $room->status = 'Cleaning';
-            $room->save();
+
+        if ($room->status !== 'Occupied') {
+            return redirect()->back()->with('error', 'Kamar tidak sedang dipakai!');
         }
+
+        $room->status = 'Cleaning';
+        $room->save();
+
         return redirect()->back()->with('success', 'Check-out berhasil! Kamar kini dalam status Cleaning.');
     }
 
-    public function updateStatus(Request $request, $id) {
+    /**
+     * Update status kamar (Cleaning, Available, Locked)
+     */
+    public function updateStatus(Request $request, $id)
+    {
         $room = Room::findOrFail($id);
-        $status = $request->input('status');
+        $status = ucfirst(strtolower($request->input('status')));
 
-        $validStatus = ['Available', 'Cleaning', 'Locked'];
-        if(in_array($status, $validStatus)){
-            $room->status = $status;
-            $room->save();
+        $validStatus = ['Available', 'Cleaning', 'Locked', 'Occupied'];
+        if (!in_array($status, $validStatus)) {
+            return redirect()->back()->with('error', 'Status tidak valid!');
         }
+
+        $room->status = $status;
+        $room->save();
 
         return redirect()->back()->with('success', 'Status kamar diperbarui!');
     }
